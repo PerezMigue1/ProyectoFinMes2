@@ -242,14 +242,14 @@ METRICS = BUNDLE["metrics"]
 
 def default_form_values():
     df = load_dataset()
-    median = df[FEATURES].median(numeric_only=True)
+    example_row = df.iloc[1]
     return {
-        "age": int(round(median["age"])),
-        "sex": "0",
-        "hnr": round(float(median["hnr"]), 3),
-        "dfa": round(float(median["dfa"]), 3),
-        "ppe": round(float(median["ppe"]), 3),
-        "rpde": round(float(median["rpde"]), 3),
+        "age": int(round(example_row["age"])),
+        "sex": str(int(example_row["sex"])),
+        "hnr": round(float(example_row["hnr"]), 3),
+        "dfa": round(float(example_row["dfa"]), 3),
+        "ppe": round(float(example_row["ppe"]), 3),
+        "rpde": round(float(example_row["rpde"]), 3),
     }
 
 
