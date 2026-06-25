@@ -1,0 +1,9 @@
+myenv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.env
+flask_stdout.log
+flask_stderr.log

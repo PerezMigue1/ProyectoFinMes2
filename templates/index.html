@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prediccion UPDRS Parkinson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <div>
+        <span class="tag">Despliegue de modelo ML</span>
+        <h1>Prediccion de severidad UPDRS en Parkinson</h1>
+        <p>
+          Modelo de regresion para estimar la puntuacion <strong>total_updrs</strong>
+          a partir de variables originales de voz y datos del paciente.
+        </p>
+      </div>
+      <aside class="model-card">
+        <span>Modelo publicado</span>
+        <strong>Random Forest - S1</strong>
+        <small>6 caracteristicas seleccionadas</small>
+      </aside>
+    </header>
+
+    <section class="metrics" aria-label="Metricas del modelo">
+      <article>
+        <span>R2 promedio CV=7</span>
+        <strong>{{ "%.4f"|format(metrics.cv_r2) }}</strong>
+      </article>
+      <article>
+        <span>MAE promedio CV=7</span>
+        <strong>{{ "%.4f"|format(metrics.cv_mae) }}</strong>
+      </article>
+      <article>
+        <span>R2 prueba 80/20</span>
+        <strong>{{ "%.4f"|format(metrics.split_r2) }}</strong>
+      </article>
+      <article>
+        <span>MAE prueba 80/20</span>
+        <strong>{{ "%.4f"|format(metrics.split_mae) }}</strong>
+      </article>
+    </section>
+
+    <section class="workbench">
+      <section class="form-panel">
+        <div class="section-title">
+          <span>Formulario</span>
+          <h2>Datos de entrada</h2>
+        </div>
+
+        {% if errors %}
+          <div class="error-list" role="alert">
+            {% for error in errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" class="prediction-form">
+          <label>
+            Sexo
+            <small>Codificacion original: 0=Hombre, 1=Mujer</small>
+            <select name="sex" required>
+              <option value="0" {% if form_values.sex|string == "0" %}selected{% endif %}>Hombre</option>
+              <option value="1" {% if form_values.sex|string == "1" %}selected{% endif %}>Mujer</option>
+            </select>
+          </label>
+
+          {% for field in ["age", "hnr", "dfa", "ppe", "rpde"] %}
+            <label>
+              {{ field_info[field].label }}
+              <small>{{ field_info[field].unit }}</small>
+              <input
+                name="{{ field }}"
+                type="number"
+                min="{{ field_info[field].min }}"
+                max="{{ field_info[field].max }}"
+                step="{{ field_info[field].step }}"
+                value="{{ form_values[field] }}"
+                placeholder="{{ field_info[field].placeholder }}"
+                required
+              >
+            </label>
+          {% endfor %}
+
+          <button type="submit">Generar prediccion</button>
+        </form>
+
+        {% if prediction is not none %}
+          <section class="result-card" aria-live="polite">
+            <span>Resultado estimado</span>
+            <strong>{{ "%.2f"|format(prediction) }}</strong>
+            <small>puntos en la escala UPDRS total</small>
+          </section>
+        {% endif %}
+
+        <a class="download-link" href="{{ url_for('descargar_metricas') }}">Descargar metricas en Excel</a>
+      </section>
+
+      <section class="analysis-panel">
+        <div class="section-title">
+          <span>Evaluacion</span>
+          <h2>Graficas del modelo seleccionado</h2>
+        </div>
+
+        <div class="chart-stack">
+          <article class="chart-card">
+            <div>
+              <span>Grafica 1</span>
+              <h3>Valores reales contra predichos</h3>
+            </div>
+            <img src="{{ url_for('static', filename='charts/real_vs_predicho.png') }}" alt="Grafica de valores reales contra predichos">
+          </article>
+
+          <article class="chart-card">
+            <div>
+              <span>Grafica 2</span>
+              <h3>Analisis de residuos</h3>
+            </div>
+            <img src="{{ url_for('static', filename='charts/residuos.png') }}" alt="Grafica de residuos del modelo">
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
